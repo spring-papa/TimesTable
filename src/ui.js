@@ -34,6 +34,58 @@ const DIFFICULTY_IMAGES = {
   weak: "assets/difficulty-weak-character.png",
 };
 
+const challengeIntroMessages = {
+  super: [
+    "나는 슈퍼 레몬이야! 3초 안에 맞힐 수 있겠어?",
+    "너무 빠르다고 놀라지 마! 준비됐지?",
+    "이번엔 진짜 빠르다! 나를 이겨봐!",
+    "3초면 충분하지? 자신 있으면 시작해!",
+    "눈 깜짝할 사이에 문제가 지나갈 거야!",
+    "빠른 두뇌가 필요해! 도전해볼래?",
+    "구구단 번개처럼 풀 수 있겠어?",
+    "나는 엄청 강해! 그래도 한번 붙어보자!",
+    "망설이면 늦어! 바로바로 맞혀봐!",
+    "슈퍼 속도로 간다! 준비 완료?",
+  ],
+  normal: [
+    "나는 평범 레몬이야! 침착하게 풀면 이길 수 있을걸?",
+    "5초 안에 척척 맞혀봐!",
+    "너의 구구단 실력을 보여줘!",
+    "이번엔 내가 쉽게 지지 않을 거야!",
+    "천천히 생각하고 빠르게 대답해봐!",
+    "나랑 딱 좋은 승부를 해보자!",
+    "구구단을 얼마나 잘 외웠는지 볼까?",
+    "집중하면 충분히 이길 수 있어!",
+    "너도 준비됐지? 나도 준비됐어!",
+    "실수만 조심하면 이길 수 있을지도 몰라!",
+  ],
+  weak: [
+    "나는 허약 레몬이야… 그래도 쉽게 이기진 않을 거야!",
+    "7초나 줄게! 이번엔 맞힐 수 있지?",
+    "천천히 풀어도 돼. 하지만 방심하면 안 돼!",
+    "나 약해 보여도 구구단은 자신 있다구!",
+    "조금 느려도 괜찮아! 끝까지 풀어봐!",
+    "후우… 힘은 약하지만 문제는 낼 수 있어!",
+    "쉽다고 생각하면 큰일 날걸?",
+    "이번엔 내가 살살 해줄게!",
+    "차분하게 풀면 분명 이길 수 있어!",
+    "나를 이기고 자신감을 얻어봐!",
+  ],
+};
+
+const challengeWelcomeMessages = [
+  "구구단 도전장에 온 걸 환영해!",
+  "오늘은 레몬이를 이길 준비가 됐니?",
+  "멋진 구구단 실력을 보여줄 시간이야!",
+  "두근두근! 어떤 레몬이에게 도전해볼까?",
+  "자신감을 가지고 도전해봐!",
+  "실수해도 괜찮아. 도전하는 게 멋진 거야!",
+  "집중하면 분명 좋은 결과가 있을 거야!",
+  "구구단 용사님, 도전을 시작해볼까요?",
+  "레몬이가 너의 도전을 기다리고 있어!",
+  "오늘의 구구단 챔피언은 누가 될까?",
+];
+
 const VIEW_IDS = {
   home: "#view-home",
   "practice-setup": "#view-practice-setup",
@@ -51,6 +103,7 @@ const els = {
   btnChallenge: document.querySelector("#btn-challenge"),
   practiceDifficulty: document.querySelector("#practice-difficulty"),
   challengeDifficulty: document.querySelector("#challenge-difficulty"),
+  challengeIntroMessage: document.querySelector("#challenge-intro-message"),
   danOptions: document.querySelector("#dan-options"),
   btnStartPractice: document.querySelector("#btn-start-practice"),
   btnStartChallenge: document.querySelector("#btn-start-challenge"),
@@ -75,6 +128,8 @@ let acceptingAnswer = false;
 let revealTimeout = 0;
 let revealInterval = 0;
 let activeQuestionKey = "";
+let currentChallengeIntroMessage = "";
+let isChallengeWelcomeMessage = true;
 const THINKING_IMAGES = ["assets/thinking-character-1.png", "assets/thinking-character-2.png"];
 
 export function bootstrapUI() {
@@ -101,6 +156,7 @@ function bindEvents() {
   els.btnChallenge.addEventListener("click", () => {
     setMode("challenge");
     setView("challenge-setup");
+    setRandomChallengeWelcomeMessage();
     render();
   });
 
@@ -115,6 +171,8 @@ function bindEvents() {
     const button = event.target.closest("[data-difficulty]");
     if (!button) return;
     setChallengeDifficulty(button.dataset.difficulty);
+    currentChallengeIntroMessage = getRandomChallengeIntroMessage(button.dataset.difficulty);
+    isChallengeWelcomeMessage = false;
     render();
   });
 
@@ -213,6 +271,7 @@ function renderSetupSelections() {
   const state = getState();
   markSelected(els.practiceDifficulty, "[data-difficulty]", state.practiceDifficultyId, "difficulty");
   markSelected(els.challengeDifficulty, "[data-difficulty]", state.challengeDifficultyId, "difficulty");
+  renderChallengeIntroMessage(state);
 
   els.danOptions.querySelectorAll("[data-dan]").forEach((button) => {
     const selected = state.selectedDans.includes(Number(button.dataset.dan));
@@ -224,12 +283,38 @@ function renderSetupSelections() {
   els.btnStartChallenge.disabled = !state.challengeDifficultyId;
 }
 
+function renderChallengeIntroMessage(state) {
+  if (state.view === "challenge-setup" && !currentChallengeIntroMessage) {
+    setRandomChallengeWelcomeMessage();
+  }
+
+  const shouldShow = state.view === "challenge-setup" && currentChallengeIntroMessage;
+  els.challengeIntroMessage.hidden = !shouldShow;
+  els.challengeIntroMessage.classList.toggle("is-welcome", shouldShow && isChallengeWelcomeMessage);
+  els.challengeIntroMessage.classList.toggle("is-lemon", shouldShow && !isChallengeWelcomeMessage);
+  els.challengeIntroMessage.textContent = shouldShow ? currentChallengeIntroMessage : "";
+}
+
 function markSelected(root, selector, selectedValue, dataKey) {
   root.querySelectorAll(selector).forEach((button) => {
     const selected = button.dataset[dataKey] === selectedValue;
     button.classList.toggle("is-selected", selected);
     button.setAttribute("aria-pressed", selected ? "true" : "false");
   });
+}
+
+function getRandomChallengeIntroMessage(difficultyId) {
+  const messages = challengeIntroMessages[difficultyId] ?? challengeIntroMessages.normal;
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
+function setRandomChallengeWelcomeMessage() {
+  currentChallengeIntroMessage = getRandomItem(challengeWelcomeMessages);
+  isChallengeWelcomeMessage = true;
+}
+
+function getRandomItem(items) {
+  return items[Math.floor(Math.random() * items.length)];
 }
 
 function renderPlay() {
@@ -426,6 +511,8 @@ function goHome() {
   stopQuestionTimer();
   acceptingAnswer = false;
   activeQuestionKey = "";
+  currentChallengeIntroMessage = "";
+  isChallengeWelcomeMessage = true;
   resetToHome();
   render();
 }

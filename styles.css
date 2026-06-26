@@ -202,6 +202,10 @@ p {
   flex: 1;
 }
 
+.challenge-panel {
+  align-content: start;
+}
+
 .setup-panel h2 {
   margin-bottom: var(--space-3);
   color: var(--ink-soft);
@@ -216,6 +220,31 @@ p {
 
 .option-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.challenge-intro-message {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  min-height: 76px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(239, 124, 47, 0.28);
+  border-radius: var(--radius-md);
+  color: #5b3320;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.challenge-intro-message.is-welcome {
+  border-color: rgba(79, 160, 199, 0.34);
+  background: #eefaff;
+  color: #1f4f67;
+}
+
+.challenge-intro-message.is-lemon {
+  background: #fff8df;
 }
 
 .dan-grid {
