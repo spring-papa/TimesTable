@@ -159,13 +159,23 @@ function createDifficultyButton(difficulty) {
   button.className = `option-btn difficulty-btn is-${difficulty.id}`;
   button.type = "button";
   button.dataset.difficulty = difficulty.id;
+  button.setAttribute("aria-label", difficulty.name);
   button.innerHTML = `
     <span class="difficulty-figure" aria-hidden="true">
       <img src="assets/lemoni-character-small.png" alt="" />
     </span>
-    <span class="difficulty-name">${difficulty.name}</span>
+    <span class="difficulty-name">${getDifficultyShortName(difficulty.id)}</span>
   `;
   return button;
+}
+
+function getDifficultyShortName(id) {
+  const names = {
+    super: "슈퍼",
+    normal: "평범",
+    weak: "허약",
+  };
+  return names[id] ?? "";
 }
 
 function createDanButton(dan) {
@@ -173,7 +183,8 @@ function createDanButton(dan) {
   button.className = "dan-btn";
   button.type = "button";
   button.dataset.dan = String(dan);
-  button.textContent = `${dan}단`;
+  button.setAttribute("aria-label", `${dan}단`);
+  button.textContent = String(dan);
   return button;
 }
 

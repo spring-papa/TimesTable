@@ -274,7 +274,8 @@ p {
 }
 
 .dan-btn {
-  font-size: 1.25rem;
+  min-height: 52px;
+  font: 900 1.45rem/1 "Barlow", sans-serif;
 }
 
 .option-btn.is-selected,
@@ -545,27 +546,34 @@ p {
   }
 
   .option-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
   }
 
   .dan-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .dan-btn {
+    min-height: 48px;
+    font-size: 1.5rem;
   }
 
   .difficulty-btn {
-    min-height: 96px;
-    display: grid;
-    grid-template-columns: 94px minmax(0, 1fr);
+    min-height: 116px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
-    text-align: left;
+    justify-content: flex-end;
+    gap: var(--space-1);
+    padding: var(--space-2);
+    text-align: center;
   }
 
   .difficulty-figure {
-    grid-column: 1;
-    width: 94px;
-    height: 86px;
+    width: 100%;
+    height: var(--difficulty-size, 64px);
     align-self: center;
     place-items: center;
   }
@@ -576,22 +584,22 @@ p {
   }
 
   .difficulty-btn.is-super {
-    --difficulty-size: 86px;
+    --difficulty-size: 74px;
   }
 
   .difficulty-btn.is-normal {
-    --difficulty-size: 70px;
+    --difficulty-size: 62px;
   }
 
   .difficulty-btn.is-weak {
-    --difficulty-size: 56px;
+    --difficulty-size: 50px;
   }
 
   .difficulty-name {
-    grid-column: 2;
     min-height: auto;
-    justify-items: start;
-    text-align: left;
+    justify-items: center;
+    text-align: center;
+    font-size: 1rem;
   }
 
   .setup-panel,
