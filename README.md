@@ -38,7 +38,6 @@
 │   ├── apple-touch-icon.png
 │   ├── icon-192.png
 │   ├── icon-512.png
-│   ├── lemon-icon.svg
 │   ├── lemoni-character.png
 │   └── lemoni-character-small.png
 └── src/
