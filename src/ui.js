@@ -141,7 +141,7 @@ function bindEvents() {
   els.answerOptions.addEventListener("click", (event) => {
     const button = event.target.closest("[data-answer]");
     if (!button) return;
-    submitAnswer(Number(button.dataset.answer));
+    submitAnswer(Number(button.dataset.answer), button);
   });
 
   els.btnFailOk.addEventListener("click", goHome);
@@ -261,12 +261,14 @@ function renderAnswerChoices(question) {
   els.answerOptions.replaceChildren(fragment);
 }
 
-function submitAnswer(answer) {
+function submitAnswer(answer, selectedButton) {
   if (!acceptingAnswer) return;
 
   const question = getCurrentQuestion();
   if (!question) return;
 
+  lockAnswerChoices();
+  selectedButton?.blur();
   stopQuestionTimer();
 
   if (answer === question.answer) {
@@ -275,6 +277,12 @@ function submitAnswer(answer) {
   }
 
   handleWrong(question, activeQuestionKey);
+}
+
+function lockAnswerChoices() {
+  els.answerOptions.querySelectorAll(".answer-choice").forEach((button) => {
+    button.disabled = true;
+  });
 }
 
 function handleCorrect() {
