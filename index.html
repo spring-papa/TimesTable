@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>레몬이를 이겨라!</title>
+    <meta name="theme-color" content="#ffb574" />
+    <meta property="og:title" content="레몬이를 이겨라!" />
+    <meta property="og:description" content="구구단을 재미있게 연습하는 레몬 테마 게임" />
+    <meta property="og:image" content="assets/icon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@700;800;900&family=IBM+Plex+Sans+KR:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <main id="view-home" class="view is-active" aria-label="첫 화면">
+        <section class="home-stage">
+          <img src="assets/lemoni-character.png" alt="" class="hero-lemon" />
+          <p class="kicker">구구단 게임</p>
+          <h1>레몬이를 이겨라!</h1>
+          <div class="home-actions">
+            <button id="btn-practice" class="primary-btn" type="button">연습</button>
+            <button id="btn-challenge" class="secondary-btn" type="button">도전</button>
+          </div>
+        </section>
+      </main>
+
+      <main id="view-practice-setup" class="view" aria-label="연습 설정 화면">
+        <header class="view-header">
+          <button class="home-btn" type="button" data-home aria-label="홈으로">⌂</button>
+          <h1>연습</h1>
+        </header>
+        <section class="setup-panel">
+          <section>
+            <h2>레몬이 고르기</h2>
+            <div id="practice-difficulty" class="option-grid" role="group" aria-label="연습 난이도"></div>
+          </section>
+          <section>
+            <h2>연습할 단</h2>
+            <div id="dan-options" class="dan-grid" role="group" aria-label="연습할 단"></div>
+          </section>
+        </section>
+        <footer class="bottom-cta">
+          <button id="btn-start-practice" class="primary-btn" type="button" disabled>시작</button>
+        </footer>
+      </main>
+
+      <main id="view-challenge-setup" class="view" aria-label="도전 설정 화면">
+        <header class="view-header">
+          <button class="home-btn" type="button" data-home aria-label="홈으로">⌂</button>
+          <h1>도전</h1>
+        </header>
+        <section class="setup-panel centered-panel">
+          <h2>레몬이 고르기</h2>
+          <div id="challenge-difficulty" class="option-grid" role="group" aria-label="도전 난이도"></div>
+        </section>
+        <footer class="bottom-cta">
+          <button id="btn-start-challenge" class="primary-btn" type="button" disabled>시작</button>
+        </footer>
+      </main>
+
+      <main id="view-play" class="view" aria-label="문제 풀이 화면">
+        <header class="view-header">
+          <button class="home-btn" type="button" data-home aria-label="홈으로">⌂</button>
+          <h1 id="play-title">문제</h1>
+        </header>
+        <section class="play-panel">
+          <div class="progress-row">
+            <span id="question-count">1 / 8</span>
+            <span id="difficulty-label">평범 레몬이</span>
+          </div>
+          <div class="timer-track" aria-label="남은 시간">
+            <div id="timer-bar" class="timer-bar"></div>
+          </div>
+          <div class="battle-zone">
+            <div class="opponent-wrap">
+              <img src="assets/lemoni-character-small.png" alt="레몬이" class="opponent-lemon" />
+              <span class="opponent-name">레몬이</span>
+            </div>
+            <p id="question-expression" class="question-expression">2 × 3</p>
+          </div>
+          <div id="answer-options" class="answer-options" role="group" aria-label="정답 선택"></div>
+        </section>
+      </main>
+
+      <main id="view-reveal" class="view" aria-label="정답 확인 화면">
+        <header class="view-header">
+          <button class="home-btn" type="button" data-home aria-label="홈으로">⌂</button>
+          <h1>아쉬워!</h1>
+        </header>
+        <section class="result-panel">
+          <img src="assets/lemoni-character-small.png" alt="" class="result-lemon small" />
+          <p class="result-copy">정답은</p>
+          <p id="answer-reveal" class="answer-reveal">3 × 4 = 12</p>
+          <p id="reveal-dots" class="dots">...</p>
+        </section>
+      </main>
+
+      <main id="view-practice-result" class="view" aria-label="연습 결과 화면">
+        <header class="view-header">
+          <button class="home-btn" type="button" data-home aria-label="홈으로">⌂</button>
+          <h1>결과</h1>
+        </header>
+        <section id="practice-result-panel" class="result-panel"></section>
+      </main>
+
+      <main id="view-challenge-fail" class="view" aria-label="도전 실패 화면">
+        <header class="view-header">
+          <button class="home-btn" type="button" data-home aria-label="홈으로">⌂</button>
+          <h1>실패</h1>
+        </header>
+        <section class="result-panel">
+          <img src="assets/lemoni-character-small.png" alt="" class="result-lemon small tilted" />
+          <p class="result-copy">레몬이가 막았어!</p>
+          <p id="challenge-fail-answer" class="answer-reveal">4 × 7 = 28</p>
+          <button id="btn-fail-ok" class="primary-btn" type="button">확인</button>
+        </section>
+      </main>
+
+      <main id="view-challenge-success" class="view" aria-label="도전 성공 화면">
+        <header class="view-header">
+          <button class="home-btn" type="button" data-home aria-label="홈으로">⌂</button>
+          <h1>성공</h1>
+        </header>
+        <section class="result-panel celebrate">
+          <img src="assets/lemoni-character.png" alt="" class="result-lemon" />
+          <p id="challenge-success-copy" class="success-copy">평범 레몬이를 이겼다!</p>
+          <button id="btn-success-ok" class="primary-btn" type="button">확인</button>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
