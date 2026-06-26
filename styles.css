@@ -653,8 +653,30 @@ p {
     font-size: 3.8rem;
   }
 
-  .option-grid,
-  .dan-grid,
+  .option-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-1);
+  }
+
+  .dan-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-1);
+  }
+
+  .difficulty-btn {
+    min-height: 108px;
+    padding: var(--space-1);
+  }
+
+  .difficulty-name {
+    font-size: 0.9rem;
+  }
+
+  .dan-btn {
+    min-height: 44px;
+    font-size: 1.35rem;
+  }
+
   .answer-options {
     grid-template-columns: 1fr;
   }
