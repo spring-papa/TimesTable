@@ -42,6 +42,7 @@ body {
   margin: 0;
   min-height: 100%;
   background: var(--app-background);
+  background-color: var(--bg-top);
 }
 
 body {
@@ -54,7 +55,10 @@ body {
 body::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset:
+    calc(env(safe-area-inset-top, 0px) * -1)
+    0
+    calc(env(safe-area-inset-bottom, 0px) * -1);
   z-index: 0;
   background: var(--app-background);
   pointer-events: none;
@@ -258,9 +262,11 @@ p {
 }
 
 .difficulty-figure img {
-  width: 118px;
-  height: 118px;
+  width: min(100%, 118px);
+  height: auto;
+  aspect-ratio: 1;
   object-fit: contain;
+  justify-self: center;
   filter: drop-shadow(0 8px 12px rgba(106, 63, 34, 0.18));
   transition: transform 150ms ease-out;
 }
@@ -427,7 +433,9 @@ p {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
+  min-width: 0;
   min-height: 76px;
+  padding: 0 var(--space-1);
   border: 2px solid rgba(111, 70, 40, 0.2);
   border-radius: var(--radius-md);
   background: var(--surface-strong);
@@ -588,8 +596,8 @@ p {
 
   .difficulty-figure img {
     display: block;
-    width: 104px;
-    height: 104px;
+    width: min(100%, 104px);
+    height: auto;
     margin-inline: auto;
   }
 
@@ -652,8 +660,8 @@ p {
   }
 
   .difficulty-figure img {
-    width: 92px;
-    height: 92px;
+    width: min(100%, 92px);
+    height: auto;
   }
 
   .dan-btn {
@@ -662,6 +670,12 @@ p {
   }
 
   .answer-options {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-1);
+  }
+
+  .answer-choice {
+    min-height: 68px;
+    font-size: 2rem;
   }
 }
