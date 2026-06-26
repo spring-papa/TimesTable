@@ -269,6 +269,9 @@ function submitAnswer(answer, selectedButton) {
 
   lockAnswerChoices();
   selectedButton?.blur();
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
   stopQuestionTimer();
 
   if (answer === question.answer) {
@@ -287,8 +290,12 @@ function lockAnswerChoices() {
 
 function handleCorrect() {
   acceptingAnswer = false;
-  advanceQuestion();
-  moveAfterQuestion();
+  const answeredQuestionKey = activeQuestionKey;
+  window.setTimeout(() => {
+    if (answeredQuestionKey !== activeQuestionKey) return;
+    advanceQuestion();
+    moveAfterQuestion();
+  }, 120);
 }
 
 function handleWrong(question, questionKey) {
