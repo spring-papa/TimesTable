@@ -20,13 +20,13 @@
       href="https://fonts.googleapis.com/css2?family=Barlow:wght@700;800;900&family=IBM+Plex+Sans+KR:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260626-3" />
+    <link rel="stylesheet" href="styles.css?v=20260627-10" />
   </head>
   <body>
     <div class="app-shell">
       <main id="view-home" class="view is-active" aria-label="첫 화면">
         <section class="home-stage">
-          <img src="assets/lemoni-character.png" alt="" class="hero-lemon" />
+          <img src="assets/answer-reveal-character.png" alt="" class="hero-lemon" />
           <p class="kicker">구구단 게임</p>
           <h1>레몬이를 이겨라!</h1>
           <div class="home-actions">
@@ -78,14 +78,19 @@
         <section class="play-panel">
           <div class="progress-row">
             <span id="question-count">1 / 8</span>
-            <span id="difficulty-label">평범 레몬이</span>
+            <span class="play-difficulty">
+              <span id="difficulty-label">평범 레몬이</span>
+              <img id="difficulty-image" src="assets/lemoni-character-small.png" alt="" />
+            </span>
           </div>
           <div class="timer-track" aria-label="남은 시간">
             <div id="timer-bar" class="timer-bar"></div>
           </div>
           <div class="battle-zone">
             <div class="opponent-wrap">
-              <img src="assets/lemoni-character-small.png" alt="레몬이" class="opponent-lemon" />
+              <span class="opponent-stage" aria-label="레몬이" role="img">
+                <img id="opponent-lemon" src="assets/thinking-character-1.png" alt="" class="opponent-lemon" />
+              </span>
               <span class="opponent-name">레몬이</span>
             </div>
             <p id="question-expression" class="question-expression">2 × 3</p>
@@ -100,7 +105,7 @@
           <h1>아쉬워!</h1>
         </header>
         <section class="result-panel">
-          <img src="assets/lemoni-character-small.png" alt="" class="result-lemon small" />
+          <img src="assets/answer-reveal-character.png" alt="" class="result-lemon small" />
           <p class="result-copy">정답은</p>
           <p id="answer-reveal" class="answer-reveal">3 × 4 = 12</p>
           <p id="reveal-dots" class="dots">...</p>
@@ -121,7 +126,7 @@
           <h1>실패</h1>
         </header>
         <section class="result-panel">
-          <img src="assets/lemoni-character-small.png" alt="" class="result-lemon small tilted" />
+          <img src="assets/answer-reveal-character.png" alt="" class="result-lemon small" />
           <p class="result-copy">레몬이가 막았어!</p>
           <p id="challenge-fail-answer" class="answer-reveal">4 × 7 = 28</p>
           <button id="btn-fail-ok" class="primary-btn" type="button">확인</button>
@@ -134,13 +139,13 @@
           <h1>성공</h1>
         </header>
         <section class="result-panel celebrate">
-          <img src="assets/lemoni-character.png" alt="" class="result-lemon" />
+          <img src="assets/challenge-success-character.png" alt="" class="result-lemon" />
           <p id="challenge-success-copy" class="success-copy">평범 레몬이를 이겼다!</p>
           <button id="btn-success-ok" class="primary-btn" type="button">확인</button>
         </section>
       </main>
     </div>
 
-    <script type="module" src="src/main.js?v=20260626-3"></script>
+    <script type="module" src="src/main.js?v=20260627-7"></script>
   </body>
 </html>

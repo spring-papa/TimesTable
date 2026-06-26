@@ -28,6 +28,12 @@ import {
 } from "./state.js";
 import { startQuestionTimer, stopQuestionTimer } from "./timer.js";
 
+const DIFFICULTY_IMAGES = {
+  super: "assets/difficulty-super-character.png",
+  normal: "assets/lemoni-character-small.png",
+  weak: "assets/difficulty-weak-character.png",
+};
+
 const VIEW_IDS = {
   home: "#view-home",
   "practice-setup": "#view-practice-setup",
@@ -51,7 +57,9 @@ const els = {
   playTitle: document.querySelector("#play-title"),
   questionCount: document.querySelector("#question-count"),
   difficultyLabel: document.querySelector("#difficulty-label"),
+  difficultyImage: document.querySelector("#difficulty-image"),
   timerBar: document.querySelector("#timer-bar"),
+  opponentLemon: document.querySelector("#opponent-lemon"),
   questionExpression: document.querySelector("#question-expression"),
   answerOptions: document.querySelector("#answer-options"),
   answerReveal: document.querySelector("#answer-reveal"),
@@ -67,6 +75,7 @@ let acceptingAnswer = false;
 let revealTimeout = 0;
 let revealInterval = 0;
 let activeQuestionKey = "";
+const THINKING_IMAGES = ["assets/thinking-character-1.png", "assets/thinking-character-2.png"];
 
 export function bootstrapUI() {
   Object.entries(VIEW_IDS).forEach(([key, selector]) => {
@@ -156,26 +165,17 @@ function renderStaticOptions() {
 
 function createDifficultyButton(difficulty) {
   const button = document.createElement("button");
+  const imageSrc = DIFFICULTY_IMAGES[difficulty.id] ?? DIFFICULTY_IMAGES.normal;
   button.className = `option-btn difficulty-btn is-${difficulty.id}`;
   button.type = "button";
   button.dataset.difficulty = difficulty.id;
   button.setAttribute("aria-label", difficulty.name);
   button.innerHTML = `
     <span class="difficulty-figure" aria-hidden="true">
-      <img src="assets/lemoni-character-small.png" alt="" />
+      <img src="${imageSrc}" alt="" />
     </span>
-    <span class="difficulty-name">${getDifficultyShortName(difficulty.id)}</span>
   `;
   return button;
-}
-
-function getDifficultyShortName(id) {
-  const names = {
-    super: "슈퍼",
-    normal: "평범",
-    weak: "허약",
-  };
-  return names[id] ?? "";
 }
 
 function createDanButton(dan) {
@@ -242,8 +242,10 @@ function renderPlay() {
   els.playTitle.textContent = state.mode === "challenge" ? "도전" : state.isRetry ? "다시 풀기" : "연습";
   els.questionCount.textContent = `${state.currentIndex + 1} / ${state.questions.length}`;
   els.difficultyLabel.textContent = difficulty.name;
+  els.difficultyImage.src = DIFFICULTY_IMAGES[difficulty.id] ?? DIFFICULTY_IMAGES.normal;
   els.questionExpression.textContent = formatQuestion(question);
   els.views.play.dataset.difficulty = difficulty.id;
+  els.opponentLemon.src = THINKING_IMAGES[state.currentIndex % THINKING_IMAGES.length];
   renderAnswerChoices(question);
   activeQuestionKey = nextQuestionKey;
   acceptingAnswer = true;
@@ -374,7 +376,7 @@ function renderPracticeResult() {
     els.practiceResultPanel.classList.add("celebrate");
     els.practiceResultPanel.innerHTML = `
       <div class="confetti" aria-hidden="true"></div>
-      <img src="assets/lemoni-character.png" alt="" class="result-lemon" />
+      <img src="assets/surprised-character.png" alt="" class="result-lemon" />
       <p class="success-copy">모두 맞혔어!</p>
       <p class="result-copy">레몬이가 깜짝 놀랐어.</p>
       <div class="result-actions">

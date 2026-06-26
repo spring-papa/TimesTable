@@ -36,7 +36,7 @@ export function createPracticeQuestions(selectedDans) {
 
 export function createChallengeQuestions() {
   const allQuestions = DAN_VALUES.flatMap((dan) => createQuestionsForDan(dan));
-  return shuffle(allQuestions).slice(0, 30);
+  return shuffle(allQuestions).slice(0, 20);
 }
 
 export function formatQuestion(question) {
