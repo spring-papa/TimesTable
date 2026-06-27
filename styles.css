@@ -248,6 +248,51 @@ p {
   background: #fff8df;
 }
 
+.challenge-message-content {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.challenge-message-copy,
+.challenge-prize-block {
+  display: block;
+}
+
+.challenge-prize-title {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--lemon-deep);
+  font-weight: 900;
+}
+
+.challenge-prize-table {
+  margin: 0 auto;
+  border-collapse: collapse;
+  color: #315d72;
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.challenge-prize-table th,
+.challenge-prize-table td {
+  padding: 2px var(--space-2);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.challenge-prize-table th {
+  color: #284f62;
+  text-align: right;
+}
+
+.challenge-prize-table th::after {
+  content: ":";
+}
+
+.challenge-prize-table td {
+  text-align: left;
+}
+
 .dan-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -270,13 +315,27 @@ p {
 }
 
 .option-btn {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--space-3);
   min-height: 152px;
-  overflow: hidden;
+  margin-bottom: 30px;
+  overflow: visible;
+}
+
+.difficulty-label {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  right: 0;
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+  font-weight: 900;
+  line-height: 1.15;
+  text-align: center;
 }
 
 .option-btn span {

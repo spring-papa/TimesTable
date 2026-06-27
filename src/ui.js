@@ -87,6 +87,12 @@ const challengeWelcomeMessages = [
   "오늘의 구구단 챔피언은 누가 될까?",
 ];
 
+const challengePrizeLines = [
+  { difficulty: "슈퍼", prize: "인형" },
+  { difficulty: "평범", prize: "스퀴시" },
+  { difficulty: "허약", prize: "필통" },
+];
+
 const VIEW_IDS = {
   home: "#view-home",
   table: "#view-table",
@@ -272,6 +278,7 @@ function createDifficultyButton(difficulty) {
     <span class="difficulty-figure" aria-hidden="true">
       <img src="${imageSrc}" alt="" />
     </span>
+    <span class="difficulty-label" aria-hidden="true">${difficulty.name.replace(" 레몬이", "")}</span>
   `;
   return button;
 }
@@ -333,7 +340,54 @@ function renderChallengeIntroMessage(state) {
   els.challengeIntroMessage.hidden = !shouldShow;
   els.challengeIntroMessage.classList.toggle("is-welcome", shouldShow && isChallengeWelcomeMessage);
   els.challengeIntroMessage.classList.toggle("is-lemon", shouldShow && !isChallengeWelcomeMessage);
-  els.challengeIntroMessage.textContent = shouldShow ? currentChallengeIntroMessage : "";
+
+  if (!shouldShow) {
+    els.challengeIntroMessage.replaceChildren();
+    return;
+  }
+
+  if (isChallengeWelcomeMessage) {
+    els.challengeIntroMessage.replaceChildren(createChallengeWelcomeContent(currentChallengeIntroMessage));
+    return;
+  }
+
+  els.challengeIntroMessage.textContent = currentChallengeIntroMessage;
+}
+
+function createChallengeWelcomeContent(message) {
+  const wrapper = document.createElement("span");
+  wrapper.className = "challenge-message-content";
+
+  const copy = document.createElement("span");
+  copy.className = "challenge-message-copy";
+  copy.textContent = message;
+
+  const prizeBlock = document.createElement("span");
+  prizeBlock.className = "challenge-prize-block";
+  const prizeTitle = document.createElement("span");
+  prizeTitle.className = "challenge-prize-title";
+  prizeTitle.textContent = "승리 상품";
+
+  const prizeTable = document.createElement("table");
+  prizeTable.className = "challenge-prize-table";
+  prizeTable.setAttribute("aria-label", "승리 상품");
+  const tableBody = document.createElement("tbody");
+
+  challengePrizeLines.forEach(({ difficulty, prize }) => {
+    const row = document.createElement("tr");
+    const name = document.createElement("th");
+    name.scope = "row";
+    name.textContent = difficulty;
+    const value = document.createElement("td");
+    value.textContent = prize;
+    row.append(name, value);
+    tableBody.append(row);
+  });
+  prizeTable.append(tableBody);
+  prizeBlock.append(prizeTitle, prizeTable);
+
+  wrapper.append(copy, prizeBlock);
+  return wrapper;
 }
 
 function markSelected(root, selector, selectedValue, dataKey) {
