@@ -20,7 +20,7 @@
       href="https://fonts.googleapis.com/css2?family=Barlow:wght@700;800;900&family=IBM+Plex+Sans+KR:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260627-10" />
+    <link rel="stylesheet" href="styles.css?v=20260627-22" />
   </head>
   <body>
     <div class="app-shell">
@@ -32,8 +32,23 @@
           <div class="home-actions">
             <button id="btn-practice" class="primary-btn" type="button">연습</button>
             <button id="btn-challenge" class="secondary-btn" type="button">도전</button>
+            <button id="btn-table" class="secondary-btn table-home-btn" type="button">구구단표</button>
           </div>
         </section>
+      </main>
+
+      <main id="view-table" class="view table-view" aria-label="구구단표 화면">
+        <header class="view-header table-header">
+          <button class="home-btn" type="button" data-home aria-label="홈으로">⌂</button>
+          <h1>구구단표</h1>
+          <button id="btn-toggle-table-answers" class="answer-toggle-btn" type="button">답숨기기</button>
+        </header>
+        <section id="table-scroll" class="table-scroll" aria-label="2단부터 9단까지 구구단표">
+          <div id="table-sections" class="table-sections"></div>
+        </section>
+        <nav class="floating-dan-picker" aria-label="단 바로가기">
+          <div id="table-dan-nav" class="table-dan-nav"></div>
+        </nav>
       </main>
 
       <main id="view-practice-setup" class="view" aria-label="연습 설정 화면">
@@ -147,6 +162,6 @@
       </main>
     </div>
 
-    <script type="module" src="src/main.js?v=20260627-7"></script>
+    <script type="module" src="src/main.js?v=20260627-10"></script>
   </body>
 </html>

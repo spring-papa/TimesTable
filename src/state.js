@@ -10,6 +10,7 @@ const initialState = {
   wrongQuestions: [],
   lastMissedQuestion: null,
   isRetry: false,
+  tableAnswersVisible: true,
 };
 
 const state = structuredClone(initialState);
@@ -24,6 +25,10 @@ export function resetToHome() {
 
 export function setView(view) {
   state.view = view;
+}
+
+export function setTableAnswersVisible(visible) {
+  state.tableAnswersVisible = visible;
 }
 
 export function setMode(mode) {

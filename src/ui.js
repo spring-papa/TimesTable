@@ -20,6 +20,7 @@ import {
   setChallengeDifficulty,
   setMode,
   setPracticeDifficulty,
+  setTableAnswersVisible,
   setView,
   startRetry,
   startRun,
@@ -88,6 +89,7 @@ const challengeWelcomeMessages = [
 
 const VIEW_IDS = {
   home: "#view-home",
+  table: "#view-table",
   "practice-setup": "#view-practice-setup",
   "challenge-setup": "#view-challenge-setup",
   play: "#view-play",
@@ -101,6 +103,11 @@ const els = {
   views: {},
   btnPractice: document.querySelector("#btn-practice"),
   btnChallenge: document.querySelector("#btn-challenge"),
+  btnTable: document.querySelector("#btn-table"),
+  btnToggleTableAnswers: document.querySelector("#btn-toggle-table-answers"),
+  tableScroll: document.querySelector("#table-scroll"),
+  tableSections: document.querySelector("#table-sections"),
+  tableDanNav: document.querySelector("#table-dan-nav"),
   practiceDifficulty: document.querySelector("#practice-difficulty"),
   challengeDifficulty: document.querySelector("#challenge-difficulty"),
   challengeIntroMessage: document.querySelector("#challenge-intro-message"),
@@ -130,6 +137,7 @@ let revealInterval = 0;
 let activeQuestionKey = "";
 let currentChallengeIntroMessage = "";
 let isChallengeWelcomeMessage = true;
+let activeTableDan = DAN_VALUES[0];
 const THINKING_IMAGES = ["assets/thinking-character-1.png", "assets/thinking-character-2.png"];
 
 export function bootstrapUI() {
@@ -158,6 +166,36 @@ function bindEvents() {
     setView("challenge-setup");
     setRandomChallengeWelcomeMessage();
     render();
+  });
+
+  els.btnTable.addEventListener("click", () => {
+    setMode("table");
+    setView("table");
+    setTableAnswersVisible(true);
+    activeTableDan = DAN_VALUES[0];
+    render();
+    requestAnimationFrame(() => scrollToDan(DAN_VALUES[0], "auto"));
+  });
+
+  els.btnToggleTableAnswers.addEventListener("click", () => {
+    setTableAnswersVisible(!getState().tableAnswersVisible);
+    renderTable();
+  });
+
+  els.tableScroll.addEventListener("scroll", updateActiveTableDan, { passive: true });
+
+  els.tableDanNav.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-table-dan]");
+    if (!button) return;
+    scrollToDan(Number(button.dataset.tableDan), "smooth");
+  });
+
+  els.tableSections.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-table-answer]");
+    if (!button) return;
+    button.classList.add("is-revealed");
+    button.textContent = button.dataset.tableAnswer;
+    button.setAttribute("aria-label", `${button.dataset.tableAnswer} 정답`);
   });
 
   els.practiceDifficulty.addEventListener("click", (event) => {
@@ -219,6 +257,8 @@ function renderStaticOptions() {
   els.practiceDifficulty.replaceChildren(...DIFFICULTIES.map(createDifficultyButton));
   els.challengeDifficulty.replaceChildren(...DIFFICULTIES.map(createDifficultyButton));
   els.danOptions.replaceChildren(...DAN_VALUES.map(createDanButton));
+  renderTableSections();
+  renderTableDanNav();
 }
 
 function createDifficultyButton(difficulty) {
@@ -256,6 +296,7 @@ function render() {
     return;
   }
 
+  if (state.view === "table") renderTable();
   if (state.view === "practice-result") renderPracticeResult();
   if (state.view === "challenge-fail") renderChallengeFail();
   if (state.view === "challenge-success") renderChallengeSuccess();
@@ -357,6 +398,140 @@ function renderAnswerChoices(question) {
     fragment.append(button);
   });
   els.answerOptions.replaceChildren(fragment);
+}
+
+function renderTableSections() {
+  const fragment = document.createDocumentFragment();
+
+  DAN_VALUES.forEach((dan) => {
+    const section = document.createElement("section");
+    section.className = "dan-table-section";
+    section.id = `dan-${dan}`;
+    section.dataset.tableSectionDan = String(dan);
+    section.setAttribute("aria-labelledby", `dan-${dan}-title`);
+
+    const heading = document.createElement("h2");
+    heading.id = `dan-${dan}-title`;
+    heading.textContent = `${dan}단`;
+
+    const rows = document.createElement("div");
+    rows.className = "dan-table-rows";
+
+    for (let multiplier = 1; multiplier <= 9; multiplier += 1) {
+      rows.append(createTableRow(dan, multiplier));
+    }
+
+    section.append(heading, rows);
+    fragment.append(section);
+  });
+
+  els.tableSections.replaceChildren(fragment);
+}
+
+function createTableRow(dan, multiplier) {
+  const answer = dan * multiplier;
+  const row = document.createElement("p");
+  row.className = "dan-table-row";
+
+  const expression = document.createElement("span");
+  expression.className = "dan-table-expression";
+  expression.textContent = `${dan} × ${multiplier} =`;
+
+  const answerSlot = document.createElement("span");
+  answerSlot.className = "dan-table-answer";
+  answerSlot.dataset.answerValue = String(answer);
+  answerSlot.textContent = String(answer);
+
+  row.append(expression, answerSlot);
+  return row;
+}
+
+function renderTableDanNav() {
+  const fragment = document.createDocumentFragment();
+
+  DAN_VALUES.forEach((dan) => {
+    const button = document.createElement("button");
+    button.className = "table-dan-btn";
+    button.type = "button";
+    button.dataset.tableDan = String(dan);
+    button.textContent = String(dan);
+    button.setAttribute("aria-label", `${dan}단으로 이동`);
+    fragment.append(button);
+  });
+
+  els.tableDanNav.replaceChildren(fragment);
+}
+
+function renderTable() {
+  const state = getState();
+  const answersVisible = state.tableAnswersVisible;
+  els.btnToggleTableAnswers.textContent = answersVisible ? "답숨기기" : "답보이기";
+  els.btnToggleTableAnswers.setAttribute("aria-pressed", answersVisible ? "false" : "true");
+  els.tableSections.classList.toggle("is-answer-hidden", !answersVisible);
+
+  els.tableSections.querySelectorAll(".dan-table-answer").forEach((slot) => {
+    const answer = slot.dataset.answerValue;
+    if (answersVisible) {
+      const visibleAnswer = document.createElement("span");
+      visibleAnswer.className = "dan-table-answer";
+      visibleAnswer.dataset.answerValue = answer;
+      visibleAnswer.textContent = answer;
+      slot.replaceWith(visibleAnswer);
+      return;
+    }
+
+    const answerButton = document.createElement("button");
+    answerButton.className = "dan-table-answer hidden-answer-btn";
+    answerButton.type = "button";
+    answerButton.dataset.answerValue = answer;
+    answerButton.dataset.tableAnswer = answer;
+    answerButton.dataset.tableAnswerRevealed = "false";
+    answerButton.setAttribute("aria-label", "정답 보기");
+    slot.replaceWith(answerButton);
+  });
+
+  requestAnimationFrame(updateActiveTableDan);
+}
+
+function updateActiveTableDan() {
+  if (getState().view !== "table") return;
+
+  const scrollTop = els.tableScroll.scrollTop;
+  const targetLine = scrollTop + els.tableScroll.clientHeight * 0.28;
+  let nextDan = activeTableDan;
+
+  els.tableSections.querySelectorAll("[data-table-section-dan]").forEach((section) => {
+    if (section.offsetTop <= targetLine) {
+      nextDan = Number(section.dataset.tableSectionDan);
+    }
+  });
+
+  if (activeTableDan !== nextDan) {
+    activeTableDan = nextDan;
+    updateTableDanButtons();
+  }
+}
+
+function updateTableDanButtons() {
+  els.tableDanNav.querySelectorAll("[data-table-dan]").forEach((button) => {
+    button.classList.remove("is-selected");
+    button.removeAttribute("aria-current");
+  });
+}
+
+function scrollToDan(dan, behavior = "smooth") {
+  const target = els.tableSections.querySelector(`[data-table-section-dan="${dan}"]`);
+  if (!target) return;
+
+  const scrollRect = els.tableScroll.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const top = els.tableScroll.scrollTop + targetRect.top - scrollRect.top;
+
+  els.tableScroll.scrollTo({
+    top,
+    behavior,
+  });
+  activeTableDan = dan;
 }
 
 function submitAnswer(answer, selectedButton) {
