@@ -35,6 +35,13 @@ const DIFFICULTY_IMAGES = {
   weak: "assets/difficulty-weak-character.png",
 };
 
+const PRIZE_STORAGE_KEY = "lemoni.challengePrizes";
+const DEFAULT_CHALLENGE_PRIZES = {
+  super: "인형",
+  normal: "스퀴시",
+  weak: "필통",
+};
+
 const challengeIntroMessages = {
   super: [
     "나는 슈퍼 레몬이야! 3초 안에 맞힐 수 있겠어?",
@@ -87,14 +94,11 @@ const challengeWelcomeMessages = [
   "오늘의 구구단 챔피언은 누가 될까?",
 ];
 
-const challengePrizeLines = [
-  { difficulty: "슈퍼", prize: "인형" },
-  { difficulty: "평범", prize: "스퀴시" },
-  { difficulty: "허약", prize: "필통" },
-];
+let challengePrizes = loadChallengePrizes();
 
 const VIEW_IDS = {
   home: "#view-home",
+  settings: "#view-settings",
   table: "#view-table",
   "practice-setup": "#view-practice-setup",
   "challenge-setup": "#view-challenge-setup",
@@ -107,9 +111,11 @@ const VIEW_IDS = {
 
 const els = {
   views: {},
+  btnSettings: document.querySelector("#btn-settings"),
   btnPractice: document.querySelector("#btn-practice"),
   btnChallenge: document.querySelector("#btn-challenge"),
   btnTable: document.querySelector("#btn-table"),
+  settingsPrizeForm: document.querySelector("#settings-prize-form"),
   btnToggleTableAnswers: document.querySelector("#btn-toggle-table-answers"),
   tableScroll: document.querySelector("#table-scroll"),
   tableSections: document.querySelector("#table-sections"),
@@ -167,6 +173,12 @@ function bindEvents() {
     render();
   });
 
+  els.btnSettings.addEventListener("click", () => {
+    setMode("settings");
+    setView("settings");
+    render();
+  });
+
   els.btnChallenge.addEventListener("click", () => {
     setMode("challenge");
     setView("challenge-setup");
@@ -186,6 +198,19 @@ function bindEvents() {
   els.btnToggleTableAnswers.addEventListener("click", () => {
     setTableAnswersVisible(!getState().tableAnswersVisible);
     renderTable();
+  });
+
+  els.settingsPrizeForm.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-prize-difficulty]");
+    if (!input) return;
+    updateChallengePrize(input.dataset.prizeDifficulty, input.value);
+    if (getState().view === "challenge-setup" && isChallengeWelcomeMessage) {
+      renderChallengeIntroMessage(getState());
+    }
+  });
+
+  els.settingsPrizeForm.addEventListener("submit", (event) => {
+    event.preventDefault();
   });
 
   els.tableScroll.addEventListener("scroll", updateActiveTableDan, { passive: true });
@@ -298,6 +323,7 @@ function render() {
   renderViews(state.view);
   renderSetupSelections();
 
+  if (state.view === "settings") renderSettings();
   if (state.view === "play") {
     renderPlay();
     return;
@@ -354,6 +380,14 @@ function renderChallengeIntroMessage(state) {
   els.challengeIntroMessage.textContent = currentChallengeIntroMessage;
 }
 
+function renderSettings() {
+  els.settingsPrizeForm.querySelectorAll("[data-prize-difficulty]").forEach((input) => {
+    const difficultyId = input.dataset.prizeDifficulty;
+    input.value = getChallengePrize(difficultyId);
+    input.placeholder = DEFAULT_CHALLENGE_PRIZES[difficultyId] ?? "";
+  });
+}
+
 function createChallengeWelcomeContent(message) {
   const wrapper = document.createElement("span");
   wrapper.className = "challenge-message-content";
@@ -373,13 +407,13 @@ function createChallengeWelcomeContent(message) {
   prizeTable.setAttribute("aria-label", "승리 상품");
   const tableBody = document.createElement("tbody");
 
-  challengePrizeLines.forEach(({ difficulty, prize }) => {
+  DIFFICULTIES.forEach((difficulty) => {
     const row = document.createElement("tr");
     const name = document.createElement("th");
     name.scope = "row";
-    name.textContent = difficulty;
+    name.textContent = difficulty.name.replace(" 레몬이", "");
     const value = document.createElement("td");
-    value.textContent = prize;
+    value.textContent = getChallengePrize(difficulty.id);
     row.append(name, value);
     tableBody.append(row);
   });
@@ -732,7 +766,48 @@ function renderChallengeFail() {
 
 function renderChallengeSuccess() {
   const difficulty = getDifficulty(getState().activeDifficultyId);
-  els.challengeSuccessCopy.textContent = `${difficulty.name}를 이겼다!`;
+  els.challengeSuccessCopy.textContent = `${difficulty.name}를 이겼다! ${getChallengePrize(difficulty.id)} 획득!`;
+}
+
+function loadChallengePrizes() {
+  try {
+    const stored = window.localStorage.getItem(PRIZE_STORAGE_KEY);
+    if (!stored) return { ...DEFAULT_CHALLENGE_PRIZES };
+    const parsed = JSON.parse(stored);
+    return normalizeChallengePrizes(parsed);
+  } catch {
+    return { ...DEFAULT_CHALLENGE_PRIZES };
+  }
+}
+
+function normalizeChallengePrizes(value) {
+  return Object.fromEntries(
+    Object.entries(DEFAULT_CHALLENGE_PRIZES).map(([difficultyId, defaultPrize]) => {
+      const prize = typeof value?.[difficultyId] === "string" ? value[difficultyId].trim() : "";
+      return [difficultyId, prize || defaultPrize];
+    }),
+  );
+}
+
+function updateChallengePrize(difficultyId, prize) {
+  if (!Object.hasOwn(DEFAULT_CHALLENGE_PRIZES, difficultyId)) return;
+  challengePrizes = normalizeChallengePrizes({
+    ...challengePrizes,
+    [difficultyId]: prize,
+  });
+  saveChallengePrizes();
+}
+
+function getChallengePrize(difficultyId) {
+  return challengePrizes[difficultyId] ?? DEFAULT_CHALLENGE_PRIZES[difficultyId] ?? "";
+}
+
+function saveChallengePrizes() {
+  try {
+    window.localStorage.setItem(PRIZE_STORAGE_KEY, JSON.stringify(challengePrizes));
+  } catch {
+    // Playing should continue even when private browsing blocks storage.
+  }
 }
 
 function goHome() {

@@ -25,15 +25,40 @@
   <body>
     <div class="app-shell">
       <main id="view-home" class="view is-active" aria-label="첫 화면">
+        <button id="btn-settings" class="settings-home-btn" type="button" aria-label="설정">⚙</button>
         <section class="home-stage">
           <img src="assets/answer-reveal-character.png" alt="" class="hero-lemon" />
           <p class="kicker">구구단 게임</p>
           <h1>레몬이를 이겨라!</h1>
           <div class="home-actions">
+            <button id="btn-table" class="secondary-btn table-home-btn" type="button">구구단표</button>
             <button id="btn-practice" class="primary-btn" type="button">연습</button>
             <button id="btn-challenge" class="secondary-btn" type="button">도전</button>
-            <button id="btn-table" class="secondary-btn table-home-btn" type="button">구구단표</button>
           </div>
+        </section>
+      </main>
+
+      <main id="view-settings" class="view" aria-label="설정 화면">
+        <header class="view-header">
+          <button class="home-btn" type="button" data-home aria-label="홈으로">⌂</button>
+          <h1>설정</h1>
+        </header>
+        <section class="setup-panel settings-panel">
+          <h2>승리 상품</h2>
+          <form id="settings-prize-form" class="settings-form">
+            <label class="settings-field">
+              <span>슈퍼</span>
+              <input id="prize-super" type="text" data-prize-difficulty="super" autocomplete="off" />
+            </label>
+            <label class="settings-field">
+              <span>평범</span>
+              <input id="prize-normal" type="text" data-prize-difficulty="normal" autocomplete="off" />
+            </label>
+            <label class="settings-field">
+              <span>허약</span>
+              <input id="prize-weak" type="text" data-prize-difficulty="weak" autocomplete="off" />
+            </label>
+          </form>
         </section>
       </main>
 

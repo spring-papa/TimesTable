@@ -108,6 +108,23 @@ button:disabled {
   gap: var(--space-4);
 }
 
+.settings-home-btn {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + var(--space-4));
+  right: var(--space-4);
+  z-index: 2;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-strong);
+  color: var(--ink);
+  box-shadow: 0 8px 18px rgba(106, 63, 34, 0.13);
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform 150ms ease-out, border-color 150ms ease-out, background-color 150ms ease-out;
+}
+
 .home-stage {
   flex: 1;
   display: grid;
@@ -211,6 +228,46 @@ p {
   margin-bottom: var(--space-3);
   color: var(--ink-soft);
   font-size: 1.15rem;
+}
+
+.settings-panel {
+  align-content: start;
+}
+
+.settings-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.settings-field {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.settings-field span {
+  color: var(--ink-soft);
+  font-size: 1.08rem;
+  font-weight: 900;
+}
+
+.settings-field input {
+  width: 100%;
+  min-height: 56px;
+  min-width: 0;
+  padding: 0 var(--space-3);
+  border: 1px solid rgba(111, 70, 40, 0.2);
+  border-radius: var(--radius-md);
+  background: var(--surface-strong);
+  color: var(--ink);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.settings-field input:focus {
+  border-color: rgba(79, 160, 199, 0.62);
+  outline: none;
 }
 
 .option-grid,
@@ -407,7 +464,8 @@ p {
 .secondary-btn:not(:disabled):hover,
 .option-btn:hover,
 .dan-btn:hover,
-.home-btn:hover {
+.home-btn:hover,
+.settings-home-btn:hover {
   transform: translateY(-1px);
 }
 
@@ -830,6 +888,10 @@ p {
     padding-inline: var(--space-3);
   }
 
+  .settings-home-btn {
+    right: var(--space-3);
+  }
+
   .option-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-2);
@@ -926,6 +988,11 @@ p {
 
   .home-stage h1 {
     font-size: 2.6rem;
+  }
+
+  .settings-field {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: var(--space-2);
   }
 
   .question-expression {
