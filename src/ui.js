@@ -4,10 +4,13 @@ import {
   createChallengeQuestions,
   createPracticeQuestions,
   createAnswerChoices,
+  createReverseAnswerChoices,
+  createReverseChallengeQuestions,
   formatAnswer,
   formatQuestion,
+  formatReverseQuestion,
   getDifficulty,
-} from "./game.js";
+} from "./game.js?v=20260702-3";
 import {
   advanceQuestion,
   failChallenge,
@@ -20,14 +23,15 @@ import {
   setChallengeDifficulty,
   setMode,
   setPracticeDifficulty,
+  setReverseChallengeDifficulty,
   setTableAnswersVisible,
   setView,
   startRetry,
   startRun,
   succeedChallenge,
   toggleDan,
-} from "./state.js";
-import { startQuestionTimer, stopQuestionTimer } from "./timer.js";
+} from "./state.js?v=20260702-3";
+import { startQuestionTimer, stopQuestionTimer } from "./timer.js?v=20260702-3";
 
 const DIFFICULTY_IMAGES = {
   super: "assets/difficulty-super-character.png",
@@ -41,6 +45,35 @@ const DEFAULT_CHALLENGE_PRIZES = {
   normal: "스퀴시",
   weak: "필통",
 };
+const REVERSE_PRIZE_STORAGE_KEY = "lemoni.reverseChallengePrizes";
+const DEFAULT_REVERSE_CHALLENGE_PRIZES = {
+  super: "외식",
+  normal: "아이스크림",
+  weak: "과자",
+};
+
+const homeWelcomeMessages = [
+  "어서 와! 오늘도 구구단을 반짝반짝 익혀보자.",
+  "기다리고 있었어. 레몬이랑 같이 시작해볼까?",
+  "오늘의 구구단 모험은 여기서 시작이야!",
+  "좋아, 몸풀기부터 도전까지 내가 함께할게.",
+  "레몬이가 준비 완료! 너도 준비됐지?",
+  "한 문제씩 차근차근 가면 금방 강해질 거야.",
+  "오늘은 어떤 단이 제일 잘 맞을까?",
+  "집중력 충전 완료! 구구단 세계로 출발.",
+  "실수해도 괜찮아. 다시 해보면 돼!",
+  "레몬이가 응원 중이야. 자신 있게 눌러봐.",
+  "짧게 연습해도 좋아. 꾸준히 하면 멋져져!",
+  "구구단 감각을 깨우는 시간!",
+  "오늘도 숫자들이 우리를 기다리고 있어.",
+  "천천히 봐도 돼. 정확하게 맞히면 최고야.",
+  "레몬이와 함께라면 구구단도 재밌어져!",
+  "준비 운동 끝! 머리를 말랑하게 풀어보자.",
+  "작은 성공을 하나씩 모아보자.",
+  "어떤 메뉴부터 해볼래? 내가 옆에 있을게.",
+  "오늘의 레몬 파워를 보여줄 시간이야.",
+  "구구단 실력이 쑥쑥 자라는 소리가 들려!",
+];
 
 const challengeIntroMessages = {
   super: [
@@ -95,6 +128,7 @@ const challengeWelcomeMessages = [
 ];
 
 let challengePrizes = loadChallengePrizes();
+let reverseChallengePrizes = loadReverseChallengePrizes();
 
 const VIEW_IDS = {
   home: "#view-home",
@@ -112,8 +146,10 @@ const VIEW_IDS = {
 const els = {
   views: {},
   btnSettings: document.querySelector("#btn-settings"),
+  homeWelcomeMessage: document.querySelector("#home-welcome-message"),
   btnPractice: document.querySelector("#btn-practice"),
   btnChallenge: document.querySelector("#btn-challenge"),
+  btnReverseChallenge: document.querySelector("#btn-reverse-challenge"),
   btnTable: document.querySelector("#btn-table"),
   settingsPrizeForm: document.querySelector("#settings-prize-form"),
   btnToggleTableAnswers: document.querySelector("#btn-toggle-table-answers"),
@@ -122,6 +158,7 @@ const els = {
   tableDanNav: document.querySelector("#table-dan-nav"),
   practiceDifficulty: document.querySelector("#practice-difficulty"),
   challengeDifficulty: document.querySelector("#challenge-difficulty"),
+  challengeSetupTitle: document.querySelector("#challenge-setup-title"),
   challengeIntroMessage: document.querySelector("#challenge-intro-message"),
   danOptions: document.querySelector("#dan-options"),
   btnStartPractice: document.querySelector("#btn-start-practice"),
@@ -147,6 +184,7 @@ let acceptingAnswer = false;
 let revealTimeout = 0;
 let revealInterval = 0;
 let activeQuestionKey = "";
+let currentHomeWelcomeMessage = getRandomItem(homeWelcomeMessages);
 let currentChallengeIntroMessage = "";
 let isChallengeWelcomeMessage = true;
 let activeTableDan = DAN_VALUES[0];
@@ -186,6 +224,13 @@ function bindEvents() {
     render();
   });
 
+  els.btnReverseChallenge.addEventListener("click", () => {
+    setMode("reverse-challenge");
+    setView("challenge-setup");
+    setRandomChallengeWelcomeMessage();
+    render();
+  });
+
   els.btnTable.addEventListener("click", () => {
     setMode("table");
     setView("table");
@@ -203,7 +248,7 @@ function bindEvents() {
   els.settingsPrizeForm.addEventListener("input", (event) => {
     const input = event.target.closest("[data-prize-difficulty]");
     if (!input) return;
-    updateChallengePrize(input.dataset.prizeDifficulty, input.value);
+    updatePrize(input.dataset.prizeKind, input.dataset.prizeDifficulty, input.value);
     if (getState().view === "challenge-setup" && isChallengeWelcomeMessage) {
       renderChallengeIntroMessage(getState());
     }
@@ -239,7 +284,11 @@ function bindEvents() {
   els.challengeDifficulty.addEventListener("click", (event) => {
     const button = event.target.closest("[data-difficulty]");
     if (!button) return;
-    setChallengeDifficulty(button.dataset.difficulty);
+    if (getState().mode === "reverse-challenge") {
+      setReverseChallengeDifficulty(button.dataset.difficulty);
+    } else {
+      setChallengeDifficulty(button.dataset.difficulty);
+    }
     currentChallengeIntroMessage = getRandomChallengeIntroMessage(button.dataset.difficulty);
     isChallengeWelcomeMessage = false;
     render();
@@ -265,11 +314,13 @@ function bindEvents() {
 
   els.btnStartChallenge.addEventListener("click", () => {
     const state = getState();
-    if (!state.challengeDifficultyId) return;
+    const isReverseChallenge = state.mode === "reverse-challenge";
+    const difficultyId = isReverseChallenge ? state.reverseChallengeDifficultyId : state.challengeDifficultyId;
+    if (!difficultyId) return;
     startRun({
-      mode: "challenge",
-      difficultyId: state.challengeDifficultyId,
-      questions: createChallengeQuestions(),
+      mode: isReverseChallenge ? "reverse-challenge" : "challenge",
+      difficultyId,
+      questions: isReverseChallenge ? createReverseChallengeQuestions() : createChallengeQuestions(),
     });
     render();
   });
@@ -277,7 +328,7 @@ function bindEvents() {
   els.answerOptions.addEventListener("click", (event) => {
     const button = event.target.closest("[data-answer]");
     if (!button) return;
-    submitAnswer(Number(button.dataset.answer), button);
+    submitAnswer(button.dataset.answer, button);
   });
 
   els.btnFailOk.addEventListener("click", goHome);
@@ -323,6 +374,7 @@ function render() {
   renderViews(state.view);
   renderSetupSelections();
 
+  if (state.view === "home") renderHomeWelcomeMessage();
   if (state.view === "settings") renderSettings();
   if (state.view === "play") {
     renderPlay();
@@ -335,6 +387,10 @@ function render() {
   if (state.view === "challenge-success") renderChallengeSuccess();
 }
 
+function renderHomeWelcomeMessage() {
+  els.homeWelcomeMessage.textContent = currentHomeWelcomeMessage;
+}
+
 function renderViews(activeView) {
   Object.entries(els.views).forEach(([key, view]) => {
     view.classList.toggle("is-active", key === activeView);
@@ -344,8 +400,14 @@ function renderViews(activeView) {
 function renderSetupSelections() {
   const state = getState();
   markSelected(els.practiceDifficulty, "[data-difficulty]", state.practiceDifficultyId, "difficulty");
-  markSelected(els.challengeDifficulty, "[data-difficulty]", state.challengeDifficultyId, "difficulty");
+  markSelected(
+    els.challengeDifficulty,
+    "[data-difficulty]",
+    state.mode === "reverse-challenge" ? state.reverseChallengeDifficultyId : state.challengeDifficultyId,
+    "difficulty",
+  );
   renderChallengeIntroMessage(state);
+  els.challengeSetupTitle.textContent = state.mode === "reverse-challenge" ? "거꾸로 도전" : "도전";
 
   els.danOptions.querySelectorAll("[data-dan]").forEach((button) => {
     const selected = state.selectedDans.includes(Number(button.dataset.dan));
@@ -354,7 +416,9 @@ function renderSetupSelections() {
   });
 
   els.btnStartPractice.disabled = !state.practiceDifficultyId || state.selectedDans.length === 0;
-  els.btnStartChallenge.disabled = !state.challengeDifficultyId;
+  els.btnStartChallenge.disabled = state.mode === "reverse-challenge"
+    ? !state.reverseChallengeDifficultyId
+    : !state.challengeDifficultyId;
 }
 
 function renderChallengeIntroMessage(state) {
@@ -383,8 +447,9 @@ function renderChallengeIntroMessage(state) {
 function renderSettings() {
   els.settingsPrizeForm.querySelectorAll("[data-prize-difficulty]").forEach((input) => {
     const difficultyId = input.dataset.prizeDifficulty;
-    input.value = getChallengePrize(difficultyId);
-    input.placeholder = DEFAULT_CHALLENGE_PRIZES[difficultyId] ?? "";
+    const prizeKind = input.dataset.prizeKind;
+    input.value = getPrize(prizeKind, difficultyId);
+    input.placeholder = getDefaultPrizes(prizeKind)[difficultyId] ?? "";
   });
 }
 
@@ -407,13 +472,14 @@ function createChallengeWelcomeContent(message) {
   prizeTable.setAttribute("aria-label", "승리 상품");
   const tableBody = document.createElement("tbody");
 
+  const prizeKind = getState().mode === "reverse-challenge" ? "reverse" : "challenge";
   DIFFICULTIES.forEach((difficulty) => {
     const row = document.createElement("tr");
     const name = document.createElement("th");
     name.scope = "row";
     name.textContent = difficulty.name.replace(" 레몬이", "");
     const value = document.createElement("td");
-    value.textContent = getChallengePrize(difficulty.id);
+    value.textContent = getPrize(prizeKind, difficulty.id);
     row.append(name, value);
     tableBody.append(row);
   });
@@ -446,6 +512,12 @@ function getRandomItem(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+function getPlayTitle(state) {
+  if (state.mode === "challenge") return "도전";
+  if (state.mode === "reverse-challenge") return "거꾸로 도전";
+  return state.isRetry ? "다시 풀기" : "연습";
+}
+
 function renderPlay() {
   const state = getState();
   const question = getCurrentQuestion();
@@ -453,14 +525,14 @@ function renderPlay() {
 
   const nextQuestionKey = `${state.mode}:${state.currentIndex}:${question.id}`;
   const difficulty = getDifficulty(state.activeDifficultyId);
-  els.playTitle.textContent = state.mode === "challenge" ? "도전" : state.isRetry ? "다시 풀기" : "연습";
+  els.playTitle.textContent = getPlayTitle(state);
   els.questionCount.textContent = `${state.currentIndex + 1} / ${state.questions.length}`;
   els.difficultyLabel.textContent = difficulty.name;
   els.difficultyImage.src = DIFFICULTY_IMAGES[difficulty.id] ?? DIFFICULTY_IMAGES.normal;
-  els.questionExpression.textContent = formatQuestion(question);
+  els.questionExpression.textContent = state.mode === "reverse-challenge" ? formatReverseQuestion(question) : formatQuestion(question);
   els.views.play.dataset.difficulty = difficulty.id;
   els.opponentLemon.src = THINKING_IMAGES[state.currentIndex % THINKING_IMAGES.length];
-  renderAnswerChoices(question);
+  renderAnswerChoices(question, state.mode);
   activeQuestionKey = nextQuestionKey;
   acceptingAnswer = true;
 
@@ -475,14 +547,21 @@ function renderPlay() {
   });
 }
 
-function renderAnswerChoices(question) {
+function renderAnswerChoices(question, mode) {
   const fragment = document.createDocumentFragment();
-  createAnswerChoices(question).forEach((choice) => {
+  const choices = mode === "reverse-challenge" ? createReverseAnswerChoices(question) : createAnswerChoices(question);
+  els.answerOptions.dataset.choiceCount = String(choices.length);
+  choices.forEach((choice) => {
     const button = document.createElement("button");
     button.className = "answer-choice";
     button.type = "button";
-    button.dataset.answer = String(choice);
-    button.textContent = String(choice);
+    if (mode === "reverse-challenge") {
+      button.dataset.answer = choice.id;
+      button.textContent = formatQuestion(choice);
+    } else {
+      button.dataset.answer = String(choice);
+      button.textContent = String(choice);
+    }
     fragment.append(button);
   });
   els.answerOptions.replaceChildren(fragment);
@@ -635,12 +714,19 @@ function submitAnswer(answer, selectedButton) {
   }
   stopQuestionTimer();
 
-  if (answer === question.answer) {
+  if (isCorrectAnswer(answer, question)) {
     handleCorrect();
     return;
   }
 
   handleWrong(question, activeQuestionKey);
+}
+
+function isCorrectAnswer(answer, question) {
+  if (getState().mode === "reverse-challenge") {
+    return answer === question.id;
+  }
+  return Number(answer) === question.answer;
 }
 
 function lockAnswerChoices() {
@@ -668,7 +754,7 @@ function handleWrong(question, questionKey) {
   const state = getState();
   recordWrong(question);
 
-  if (state.mode === "challenge") {
+  if (isChallengeMode(state.mode)) {
     failChallenge(question);
     render();
     return;
@@ -685,7 +771,7 @@ function moveAfterQuestion() {
     return;
   }
 
-  if (state.mode === "challenge") {
+  if (isChallengeMode(state.mode)) {
     succeedChallenge();
   } else {
     finishPractice();
@@ -766,7 +852,12 @@ function renderChallengeFail() {
 
 function renderChallengeSuccess() {
   const difficulty = getDifficulty(getState().activeDifficultyId);
-  els.challengeSuccessCopy.textContent = `${difficulty.name}를 이겼다! ${getChallengePrize(difficulty.id)} 획득!`;
+  const prizeKind = getState().mode === "reverse-challenge" ? "reverse" : "challenge";
+  els.challengeSuccessCopy.textContent = `${difficulty.name}를 이겼다! ${getPrize(prizeKind, difficulty.id)} 획득!`;
+}
+
+function isChallengeMode(mode) {
+  return mode === "challenge" || mode === "reverse-challenge";
 }
 
 function loadChallengePrizes() {
@@ -780,26 +871,57 @@ function loadChallengePrizes() {
   }
 }
 
+function loadReverseChallengePrizes() {
+  try {
+    const stored = window.localStorage.getItem(REVERSE_PRIZE_STORAGE_KEY);
+    if (!stored) return { ...DEFAULT_REVERSE_CHALLENGE_PRIZES };
+    const parsed = JSON.parse(stored);
+    return normalizePrizes(parsed, DEFAULT_REVERSE_CHALLENGE_PRIZES);
+  } catch {
+    return { ...DEFAULT_REVERSE_CHALLENGE_PRIZES };
+  }
+}
+
 function normalizeChallengePrizes(value) {
+  return normalizePrizes(value, DEFAULT_CHALLENGE_PRIZES);
+}
+
+function normalizePrizes(value, defaultPrizes) {
   return Object.fromEntries(
-    Object.entries(DEFAULT_CHALLENGE_PRIZES).map(([difficultyId, defaultPrize]) => {
+    Object.entries(defaultPrizes).map(([difficultyId, defaultPrize]) => {
       const prize = typeof value?.[difficultyId] === "string" ? value[difficultyId].trim() : "";
       return [difficultyId, prize || defaultPrize];
     }),
   );
 }
 
-function updateChallengePrize(difficultyId, prize) {
+function updatePrize(prizeKind, difficultyId, prize) {
+  if (prizeKind === "reverse") {
+    if (!Object.hasOwn(DEFAULT_REVERSE_CHALLENGE_PRIZES, difficultyId)) return;
+    reverseChallengePrizes = normalizePrizes({
+      ...reverseChallengePrizes,
+      [difficultyId]: prize,
+    }, DEFAULT_REVERSE_CHALLENGE_PRIZES);
+    saveReverseChallengePrizes();
+    return;
+  }
+
   if (!Object.hasOwn(DEFAULT_CHALLENGE_PRIZES, difficultyId)) return;
-  challengePrizes = normalizeChallengePrizes({
+  challengePrizes = normalizePrizes({
     ...challengePrizes,
     [difficultyId]: prize,
-  });
+  }, DEFAULT_CHALLENGE_PRIZES);
   saveChallengePrizes();
 }
 
-function getChallengePrize(difficultyId) {
-  return challengePrizes[difficultyId] ?? DEFAULT_CHALLENGE_PRIZES[difficultyId] ?? "";
+function getPrize(prizeKind, difficultyId) {
+  const prizes = prizeKind === "reverse" ? reverseChallengePrizes : challengePrizes;
+  const defaults = getDefaultPrizes(prizeKind);
+  return prizes[difficultyId] ?? defaults[difficultyId] ?? "";
+}
+
+function getDefaultPrizes(prizeKind) {
+  return prizeKind === "reverse" ? DEFAULT_REVERSE_CHALLENGE_PRIZES : DEFAULT_CHALLENGE_PRIZES;
 }
 
 function saveChallengePrizes() {
@@ -810,11 +932,20 @@ function saveChallengePrizes() {
   }
 }
 
+function saveReverseChallengePrizes() {
+  try {
+    window.localStorage.setItem(REVERSE_PRIZE_STORAGE_KEY, JSON.stringify(reverseChallengePrizes));
+  } catch {
+    // Playing should continue even when private browsing blocks storage.
+  }
+}
+
 function goHome() {
   clearRevealTimers();
   stopQuestionTimer();
   acceptingAnswer = false;
   activeQuestionKey = "";
+  currentHomeWelcomeMessage = getRandomItem(homeWelcomeMessages);
   currentChallengeIntroMessage = "";
   isChallengeWelcomeMessage = true;
   resetToHome();

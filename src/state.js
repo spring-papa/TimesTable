@@ -3,6 +3,7 @@ const initialState = {
   mode: null,
   practiceDifficultyId: null,
   challengeDifficultyId: null,
+  reverseChallengeDifficultyId: null,
   selectedDans: [],
   activeDifficultyId: null,
   questions: [],
@@ -41,6 +42,10 @@ export function setPracticeDifficulty(id) {
 
 export function setChallengeDifficulty(id) {
   state.challengeDifficultyId = id;
+}
+
+export function setReverseChallengeDifficulty(id) {
+  state.reverseChallengeDifficultyId = id;
 }
 
 export function toggleDan(dan) {

@@ -147,6 +147,37 @@ button:disabled {
   animation: float 2600ms ease-in-out infinite;
 }
 
+.home-welcome-message {
+  position: relative;
+  max-width: min(100%, 420px);
+  min-height: 58px;
+  display: grid;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid rgba(239, 124, 47, 0.24);
+  border-radius: var(--radius-md);
+  background: rgba(255, 252, 245, 0.88);
+  color: #5b3320;
+  box-shadow: 0 10px 24px rgba(106, 63, 34, 0.13);
+  font-size: 1.04rem;
+  font-weight: 800;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.home-welcome-message::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  border-left: 1px solid rgba(239, 124, 47, 0.24);
+  border-top: 1px solid rgba(239, 124, 47, 0.24);
+  background: rgba(255, 252, 245, 0.88);
+  transform: translateX(-50%) rotate(45deg);
+}
+
 .kicker {
   margin: 0;
   color: var(--leaf);
@@ -454,10 +485,37 @@ p {
   color: #1f4f67;
 }
 
+.home-actions .primary-btn,
+.home-actions .secondary-btn {
+  box-shadow: 0 12px 24px rgba(106, 63, 34, 0.16);
+}
+
 .table-home-btn {
-  border-color: rgba(255, 130, 111, 0.48);
-  background: linear-gradient(180deg, #fff7e8, #ffd4c8);
+  border-color: rgba(79, 160, 199, 0.46);
+  background: linear-gradient(180deg, #f5fcff, #cbeef8);
+  color: #1f5369;
+}
+
+.home-actions .primary-btn {
+  border-color: rgba(239, 124, 47, 0.62);
+  background: linear-gradient(180deg, #fff2bf, #ffbd76);
+  color: #4b2916;
+}
+
+.challenge-home-btn {
+  border-color: rgba(255, 130, 111, 0.5);
+  background: linear-gradient(180deg, #fff1ea, #ffcabd);
   color: #713322;
+}
+
+.reverse-home-btn {
+  border-color: rgba(92, 151, 105, 0.48);
+  background: linear-gradient(180deg, #f6ffe9, #cfeab8);
+  color: #315c35;
+}
+
+.settings-form h2 {
+  margin: var(--space-2) 0 0;
 }
 
 .primary-btn:not(:disabled):hover,
@@ -751,6 +809,10 @@ p {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
+}
+
+.answer-options[data-choice-count="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .answer-choice {

@@ -20,7 +20,7 @@
       href="https://fonts.googleapis.com/css2?family=Barlow:wght@700;800;900&family=IBM+Plex+Sans+KR:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260627-28" />
+    <link rel="stylesheet" href="styles.css?v=20260702-3" />
   </head>
   <body>
     <div class="app-shell">
@@ -28,12 +28,14 @@
         <button id="btn-settings" class="settings-home-btn" type="button" aria-label="설정">⚙</button>
         <section class="home-stage">
           <img src="assets/answer-reveal-character.png" alt="" class="hero-lemon" />
+          <p id="home-welcome-message" class="home-welcome-message" aria-live="polite"></p>
           <p class="kicker">구구단 게임</p>
           <h1>레몬이를 이겨라!</h1>
           <div class="home-actions">
             <button id="btn-table" class="secondary-btn table-home-btn" type="button">구구단표</button>
             <button id="btn-practice" class="primary-btn" type="button">연습</button>
-            <button id="btn-challenge" class="secondary-btn" type="button">도전</button>
+            <button id="btn-challenge" class="secondary-btn challenge-home-btn" type="button">도전</button>
+            <button id="btn-reverse-challenge" class="secondary-btn reverse-home-btn" type="button">거꾸로 도전</button>
           </div>
         </section>
       </main>
@@ -48,15 +50,28 @@
           <form id="settings-prize-form" class="settings-form">
             <label class="settings-field">
               <span>슈퍼</span>
-              <input id="prize-super" type="text" data-prize-difficulty="super" autocomplete="off" />
+              <input id="prize-super" type="text" data-prize-kind="challenge" data-prize-difficulty="super" autocomplete="off" />
             </label>
             <label class="settings-field">
               <span>평범</span>
-              <input id="prize-normal" type="text" data-prize-difficulty="normal" autocomplete="off" />
+              <input id="prize-normal" type="text" data-prize-kind="challenge" data-prize-difficulty="normal" autocomplete="off" />
             </label>
             <label class="settings-field">
               <span>허약</span>
-              <input id="prize-weak" type="text" data-prize-difficulty="weak" autocomplete="off" />
+              <input id="prize-weak" type="text" data-prize-kind="challenge" data-prize-difficulty="weak" autocomplete="off" />
+            </label>
+            <h2>거꾸로 도전 상품</h2>
+            <label class="settings-field">
+              <span>슈퍼</span>
+              <input id="reverse-prize-super" type="text" data-prize-kind="reverse" data-prize-difficulty="super" autocomplete="off" />
+            </label>
+            <label class="settings-field">
+              <span>평범</span>
+              <input id="reverse-prize-normal" type="text" data-prize-kind="reverse" data-prize-difficulty="normal" autocomplete="off" />
+            </label>
+            <label class="settings-field">
+              <span>허약</span>
+              <input id="reverse-prize-weak" type="text" data-prize-kind="reverse" data-prize-difficulty="weak" autocomplete="off" />
             </label>
           </form>
         </section>
@@ -99,7 +114,7 @@
       <main id="view-challenge-setup" class="view" aria-label="도전 설정 화면">
         <header class="view-header">
           <button class="home-btn" type="button" data-home aria-label="홈으로">⌂</button>
-          <h1>도전</h1>
+          <h1 id="challenge-setup-title">도전</h1>
         </header>
         <section class="setup-panel centered-panel challenge-panel">
           <h2>레몬이 고르기</h2>
@@ -187,6 +202,6 @@
       </main>
     </div>
 
-    <script type="module" src="src/main.js?v=20260627-10"></script>
+    <script type="module" src="src/main.js?v=20260702-3"></script>
   </body>
 </html>

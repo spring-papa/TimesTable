@@ -39,8 +39,16 @@ export function createChallengeQuestions() {
   return shuffle(allQuestions).slice(0, 20);
 }
 
+export function createReverseChallengeQuestions() {
+  return createChallengeQuestions();
+}
+
 export function formatQuestion(question) {
   return `${question.dan} × ${question.multiplier}`;
+}
+
+export function formatReverseQuestion(question) {
+  return String(question.answer);
 }
 
 export function formatAnswer(question) {
@@ -60,6 +68,12 @@ export function createAnswerChoices(question) {
   }
 
   return shuffle([...choices]);
+}
+
+export function createReverseAnswerChoices(question) {
+  const allQuestions = DAN_VALUES.flatMap((dan) => createQuestionsForDan(dan));
+  const wrongChoices = allQuestions.filter((candidate) => candidate.answer !== question.answer);
+  return shuffle([question, shuffle(wrongChoices)[0]]);
 }
 
 function createQuestionsForDan(dan) {
