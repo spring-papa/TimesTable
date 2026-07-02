@@ -51,6 +51,12 @@ const DEFAULT_REVERSE_CHALLENGE_PRIZES = {
   normal: "아이스크림",
   weak: "과자",
 };
+const ANSWER_MODE_STORAGE_KEY = "lemoni.answerMode";
+const ANSWER_MODES = [
+  { id: "choice", label: "객관식" },
+  { id: "input", label: "주관식" },
+];
+const DIGIT_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
 const homeWelcomeMessages = [
   "어서 와! 오늘도 구구단을 반짝반짝 익혀보자.",
@@ -129,6 +135,7 @@ const challengeWelcomeMessages = [
 
 let challengePrizes = loadChallengePrizes();
 let reverseChallengePrizes = loadReverseChallengePrizes();
+let answerMode = loadAnswerMode();
 
 const VIEW_IDS = {
   home: "#view-home",
@@ -151,6 +158,7 @@ const els = {
   btnChallenge: document.querySelector("#btn-challenge"),
   btnReverseChallenge: document.querySelector("#btn-reverse-challenge"),
   btnTable: document.querySelector("#btn-table"),
+  answerModeOptions: document.querySelector("#answer-mode-options"),
   settingsPrizeForm: document.querySelector("#settings-prize-form"),
   btnToggleTableAnswers: document.querySelector("#btn-toggle-table-answers"),
   tableScroll: document.querySelector("#table-scroll"),
@@ -184,6 +192,7 @@ let acceptingAnswer = false;
 let revealTimeout = 0;
 let revealInterval = 0;
 let activeQuestionKey = "";
+let currentSubjectiveAnswer = "";
 let currentHomeWelcomeMessage = getRandomItem(homeWelcomeMessages);
 let currentChallengeIntroMessage = "";
 let isChallengeWelcomeMessage = true;
@@ -243,6 +252,13 @@ function bindEvents() {
   els.btnToggleTableAnswers.addEventListener("click", () => {
     setTableAnswersVisible(!getState().tableAnswersVisible);
     renderTable();
+  });
+
+  els.answerModeOptions.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-answer-mode]");
+    if (!button) return;
+    updateAnswerMode(button.dataset.answerMode);
+    renderSettings();
   });
 
   els.settingsPrizeForm.addEventListener("input", (event) => {
@@ -326,6 +342,12 @@ function bindEvents() {
   });
 
   els.answerOptions.addEventListener("click", (event) => {
+    const digitButton = event.target.closest("[data-digit]");
+    if (digitButton) {
+      submitDigit(digitButton.dataset.digit, digitButton);
+      return;
+    }
+
     const button = event.target.closest("[data-answer]");
     if (!button) return;
     submitAnswer(button.dataset.answer, button);
@@ -336,11 +358,21 @@ function bindEvents() {
 }
 
 function renderStaticOptions() {
+  els.answerModeOptions.replaceChildren(...ANSWER_MODES.map(createAnswerModeButton));
   els.practiceDifficulty.replaceChildren(...DIFFICULTIES.map(createDifficultyButton));
   els.challengeDifficulty.replaceChildren(...DIFFICULTIES.map(createDifficultyButton));
   els.danOptions.replaceChildren(...DAN_VALUES.map(createDanButton));
   renderTableSections();
   renderTableDanNav();
+}
+
+function createAnswerModeButton(mode) {
+  const button = document.createElement("button");
+  button.className = "answer-mode-btn";
+  button.type = "button";
+  button.dataset.answerMode = mode.id;
+  button.textContent = mode.label;
+  return button;
 }
 
 function createDifficultyButton(difficulty) {
@@ -445,6 +477,7 @@ function renderChallengeIntroMessage(state) {
 }
 
 function renderSettings() {
+  markSelected(els.answerModeOptions, "[data-answer-mode]", answerMode, "answerMode");
   els.settingsPrizeForm.querySelectorAll("[data-prize-difficulty]").forEach((input) => {
     const difficultyId = input.dataset.prizeDifficulty;
     const prizeKind = input.dataset.prizeKind;
@@ -529,10 +562,16 @@ function renderPlay() {
   els.questionCount.textContent = `${state.currentIndex + 1} / ${state.questions.length}`;
   els.difficultyLabel.textContent = difficulty.name;
   els.difficultyImage.src = DIFFICULTY_IMAGES[difficulty.id] ?? DIFFICULTY_IMAGES.normal;
-  els.questionExpression.textContent = state.mode === "reverse-challenge" ? formatReverseQuestion(question) : formatQuestion(question);
   els.views.play.dataset.difficulty = difficulty.id;
+  els.views.play.dataset.answerMode = answerMode;
   els.opponentLemon.src = THINKING_IMAGES[state.currentIndex % THINKING_IMAGES.length];
-  renderAnswerChoices(question, state.mode);
+  if (answerMode === "input") {
+    renderSubjectiveAnswer(question, state.mode);
+  } else {
+    els.questionExpression.classList.remove("is-subjective-expression");
+    els.questionExpression.textContent = state.mode === "reverse-challenge" ? formatReverseQuestion(question) : formatQuestion(question);
+    renderAnswerChoices(question, state.mode);
+  }
   activeQuestionKey = nextQuestionKey;
   acceptingAnswer = true;
 
@@ -550,6 +589,7 @@ function renderPlay() {
 function renderAnswerChoices(question, mode) {
   const fragment = document.createDocumentFragment();
   const choices = mode === "reverse-challenge" ? createReverseAnswerChoices(question) : createAnswerChoices(question);
+  els.answerOptions.classList.remove("is-subjective");
   els.answerOptions.dataset.choiceCount = String(choices.length);
   choices.forEach((choice) => {
     const button = document.createElement("button");
@@ -565,6 +605,33 @@ function renderAnswerChoices(question, mode) {
     fragment.append(button);
   });
   els.answerOptions.replaceChildren(fragment);
+}
+
+function renderSubjectiveAnswer(question, mode) {
+  currentSubjectiveAnswer = "";
+  els.answerOptions.classList.add("is-subjective");
+  els.answerOptions.dataset.choiceCount = "10";
+
+  const panel = document.createElement("div");
+  panel.className = "subjective-answer-panel";
+
+  const keypad = document.createElement("div");
+  keypad.className = "digit-keypad";
+  keypad.setAttribute("aria-label", "정답 숫자 입력");
+  keypad.setAttribute("role", "group");
+
+  DIGIT_VALUES.forEach((digit) => {
+    const button = document.createElement("button");
+    button.className = "digit-btn";
+    button.type = "button";
+    button.dataset.digit = String(digit);
+    button.textContent = String(digit);
+    keypad.append(button);
+  });
+
+  updateSubjectiveQuestionExpression(question, mode);
+  panel.append(keypad);
+  els.answerOptions.replaceChildren(panel);
 }
 
 function renderTableSections() {
@@ -722,6 +789,34 @@ function submitAnswer(answer, selectedButton) {
   handleWrong(question, activeQuestionKey);
 }
 
+function submitDigit(digit, selectedButton) {
+  if (!acceptingAnswer) return;
+
+  const question = getCurrentQuestion();
+  if (!question) return;
+
+  const nextAnswer = `${currentSubjectiveAnswer}${digit}`;
+  const answerLength = getSubjectiveAnswerLength(question, getState().mode);
+  currentSubjectiveAnswer = nextAnswer.slice(0, answerLength);
+  updateSubjectiveQuestionExpression(question, getState().mode);
+  selectedButton?.blur();
+
+  if (currentSubjectiveAnswer.length < answerLength) return;
+
+  lockAnswerChoices();
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+  stopQuestionTimer();
+
+  if (isCorrectSubjectiveAnswer(currentSubjectiveAnswer, question, getState().mode)) {
+    handleCorrect();
+    return;
+  }
+
+  handleWrong(question, activeQuestionKey);
+}
+
 function isCorrectAnswer(answer, question) {
   if (getState().mode === "reverse-challenge") {
     return answer === question.id;
@@ -729,8 +824,64 @@ function isCorrectAnswer(answer, question) {
   return Number(answer) === question.answer;
 }
 
+function isCorrectSubjectiveAnswer(answer, question, mode) {
+  if (mode !== "reverse-challenge") {
+    return Number(answer) === question.answer;
+  }
+
+  if (answer.length !== 2) return false;
+  const first = Number(answer[0]);
+  const second = Number(answer[1]);
+  return DAN_VALUES.includes(first)
+    && DAN_VALUES.includes(second)
+    && first * second === question.answer;
+}
+
+function getSubjectiveAnswerLength(question, mode) {
+  return mode === "reverse-challenge" ? 2 : String(question.answer).length;
+}
+
+function updateSubjectiveQuestionExpression(question, mode) {
+  els.questionExpression.classList.add("is-subjective-expression");
+  if (mode === "reverse-challenge") {
+    els.questionExpression.replaceChildren(
+      createSubjectiveAnswerSlot(currentSubjectiveAnswer[0]),
+      createSubjectiveExpressionText("×"),
+      createSubjectiveAnswerSlot(currentSubjectiveAnswer[1]),
+      createSubjectiveExpressionText("="),
+      createSubjectiveExpressionText(String(question.answer)),
+    );
+    return;
+  }
+
+  const answerLength = getSubjectiveAnswerLength(question, mode);
+  els.questionExpression.replaceChildren(
+    createSubjectiveExpressionText(String(question.dan)),
+    createSubjectiveExpressionText("×"),
+    createSubjectiveExpressionText(String(question.multiplier)),
+    createSubjectiveExpressionText("="),
+    ...Array.from({ length: answerLength }, (_, index) => (
+      createSubjectiveAnswerSlot(currentSubjectiveAnswer[index])
+    )),
+  );
+}
+
+function createSubjectiveExpressionText(text) {
+  const span = document.createElement("span");
+  span.className = "subjective-expression-text";
+  span.textContent = text;
+  return span;
+}
+
+function createSubjectiveAnswerSlot(value) {
+  const span = document.createElement("span");
+  span.className = "subjective-answer-slot";
+  span.textContent = value ?? "";
+  return span;
+}
+
 function lockAnswerChoices() {
-  els.answerOptions.querySelectorAll(".answer-choice").forEach((button) => {
+  els.answerOptions.querySelectorAll(".answer-choice, .digit-btn").forEach((button) => {
     button.disabled = true;
   });
 }
@@ -882,6 +1033,15 @@ function loadReverseChallengePrizes() {
   }
 }
 
+function loadAnswerMode() {
+  try {
+    const stored = window.localStorage.getItem(ANSWER_MODE_STORAGE_KEY);
+    return ANSWER_MODES.some((mode) => mode.id === stored) ? stored : "input";
+  } catch {
+    return "input";
+  }
+}
+
 function normalizeChallengePrizes(value) {
   return normalizePrizes(value, DEFAULT_CHALLENGE_PRIZES);
 }
@@ -914,6 +1074,12 @@ function updatePrize(prizeKind, difficultyId, prize) {
   saveChallengePrizes();
 }
 
+function updateAnswerMode(mode) {
+  if (!ANSWER_MODES.some((answerModeOption) => answerModeOption.id === mode)) return;
+  answerMode = mode;
+  saveAnswerMode();
+}
+
 function getPrize(prizeKind, difficultyId) {
   const prizes = prizeKind === "reverse" ? reverseChallengePrizes : challengePrizes;
   const defaults = getDefaultPrizes(prizeKind);
@@ -935,6 +1101,14 @@ function saveChallengePrizes() {
 function saveReverseChallengePrizes() {
   try {
     window.localStorage.setItem(REVERSE_PRIZE_STORAGE_KEY, JSON.stringify(reverseChallengePrizes));
+  } catch {
+    // Playing should continue even when private browsing blocks storage.
+  }
+}
+
+function saveAnswerMode() {
+  try {
+    window.localStorage.setItem(ANSWER_MODE_STORAGE_KEY, answerMode);
   } catch {
     // Playing should continue even when private browsing blocks storage.
   }

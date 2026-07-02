@@ -20,7 +20,7 @@
       href="https://fonts.googleapis.com/css2?family=Barlow:wght@700;800;900&family=IBM+Plex+Sans+KR:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260702-5" />
+    <link rel="stylesheet" href="styles.css?v=20260702-7" />
   </head>
   <body>
     <div class="app-shell">
@@ -46,6 +46,8 @@
           <h1>설정</h1>
         </header>
         <section class="setup-panel settings-panel">
+          <h2>문제 풀이 방식</h2>
+          <div id="answer-mode-options" class="answer-mode-options" role="group" aria-label="문제 풀이 방식"></div>
           <h2>승리 상품</h2>
           <form id="settings-prize-form" class="settings-form">
             <label class="settings-field">
@@ -161,7 +163,7 @@
           <h1>아쉬워!</h1>
         </header>
         <section class="result-panel">
-          <img src="assets/answer-reveal-character.png" alt="" class="result-lemon small" />
+          <img src="assets/lemoni-character-small.png" alt="" class="result-lemon small" />
           <p class="result-copy">정답은</p>
           <p id="answer-reveal" class="answer-reveal">3 × 4 = 12</p>
           <p id="reveal-dots" class="dots">...</p>
@@ -182,7 +184,7 @@
           <h1>실패</h1>
         </header>
         <section class="result-panel">
-          <img src="assets/answer-reveal-character.png" alt="" class="result-lemon small" />
+          <img src="assets/lemoni-character-small.png" alt="" class="result-lemon small" />
           <p class="result-copy">레몬이가 막았어!</p>
           <p id="challenge-fail-answer" class="answer-reveal">4 × 7 = 28</p>
           <button id="btn-fail-ok" class="primary-btn" type="button">확인</button>
@@ -202,6 +204,6 @@
       </main>
     </div>
 
-    <script type="module" src="src/main.js?v=20260702-4"></script>
+    <script type="module" src="src/main.js?v=20260702-6"></script>
   </body>
 </html>
