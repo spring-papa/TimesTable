@@ -10,7 +10,7 @@ import {
   formatQuestion,
   formatReverseQuestion,
   getDifficulty,
-} from "./game.js?v=20260702-3";
+} from "./game.js?v=20260702-4";
 import {
   advanceQuestion,
   failChallenge,

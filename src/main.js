@@ -1,3 +1,3 @@
-import { bootstrapUI } from "./ui.js?v=20260702-3";
+import { bootstrapUI } from "./ui.js?v=20260702-4";
 
 bootstrapUI();

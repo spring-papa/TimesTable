@@ -19,15 +19,15 @@ export function createPracticeQuestions(selectedDans) {
 
   const byDan = new Map(dans.map((dan) => [dan, shuffle(createQuestionsForDan(dan))]));
   const questions = [];
+  const questionCount = Math.min(18, dans.length * MULTIPLIERS.length);
   let cursor = 0;
 
-  while (questions.length < 18) {
+  while (questions.length < questionCount) {
     const dan = dans[cursor % dans.length];
     const pool = byDan.get(dan);
-    if (pool.length === 0) {
-      byDan.set(dan, shuffle(createQuestionsForDan(dan)));
+    if (pool.length > 0) {
+      questions.push(pool.pop());
     }
-    questions.push(byDan.get(dan).pop());
     cursor += 1;
   }
 
@@ -40,7 +40,7 @@ export function createChallengeQuestions() {
 }
 
 export function createReverseChallengeQuestions() {
-  return createChallengeQuestions();
+  return createQuestionsWithUniqueAnswers().slice(0, 20);
 }
 
 export function formatQuestion(question) {
@@ -83,6 +83,15 @@ function createQuestionsForDan(dan) {
     multiplier,
     answer: dan * multiplier,
   }));
+}
+
+function createQuestionsWithUniqueAnswers() {
+  const usedAnswers = new Set();
+  return shuffle(DAN_VALUES.flatMap((dan) => createQuestionsForDan(dan))).filter((question) => {
+    if (usedAnswers.has(question.answer)) return false;
+    usedAnswers.add(question.answer);
+    return true;
+  });
 }
 
 function shuffle(items) {
